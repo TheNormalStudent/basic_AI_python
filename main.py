@@ -2,6 +2,7 @@ import numpy as np
 from backprop import backprop
 import matplotlib.pyplot as plt
 import pandas as pd
+import math
 
 def sigmoid(arr):
   return 1 / (1 + np.exp(-1 * arr))
@@ -16,7 +17,7 @@ def feed_forward(arr, WX, bx, n):
         cache_of_AX.append(arr)
 
     return cache_of_AX
-5
+
 
 def cost_count(hat_y, y):
     losses = - ( (y * np.log(hat_y)) + (1 - y) * np.log(1 - hat_y) )
@@ -41,31 +42,22 @@ def prepare_data(data, data_result, n):
 
     return A0, Y, m
 
-def train():
-    # must use global keyword in order to modify global variables
+def train(data):
     epochs = 1000 # training for 1000 iterations
     alpha = 0.01 # set learning rate to 0.1
     costs = [] # list to store costs
 
-    data = pd.read_csv('cancer.csv')
+    initial_data_result = np.array(data['result'].values.tolist())
     
+    data = np.array(data.drop(columns=['result']).values.tolist())
 
-    initial_data_result = np.array(data['diagnosis(1=m, 0=b)'].values.tolist())
-    print(initial_data_result)
-    
-    data = np.array(data.drop(columns=['diagnosis(1=m, 0=b)']).values.tolist())
-    print(data.T)
-
-    n = [len(data.T), 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 1] # architecture of a neural network
-
+    n = [len(data.T)] + [len(data.T) + 1 for _ in range(0, 11)] + [1] # architecture of a neural network
     A0, Y, m = prepare_data(data=data, data_result=initial_data_result, n=n)
 
     WX = [] 
 
     for i in range(0, len(n)-1): # initializing random weights for all of our connections W1 = 2 x 3, W2 = 3 X 3, W3 = 3 x 1
         WX.append(np.random.randn(n[i+1], n[i]))
-
-    print(WX[0])
 
     bx = []
 
@@ -92,11 +84,35 @@ def train():
             bx[i] = bx[i] - (alpha * biases_backprop[i])
 
 
-    # if e % 20 == 0:
-    #     print(f"epoch {e}: cost = {error:4f}")
+    return costs, WX, bx
 
-    return costs
+def test(data, WX, bx):
+    data_true_results = np.array(data['result'].values.tolist())
+    data_to_feed = np.array(data.drop(columns=['result']).values.tolist())
+
+    n = [len(data_to_feed.T)] + [len(data_to_feed.T) + 1 for _ in range(0, 11)] + [1]
+    data_to_feed, _, _ = prepare_data(data_to_feed, data_true_results, n)
+    
+    result = feed_forward(data_to_feed, WX, bx, n)[-1][0]
+
+    print('hi')
+    print(result)
+
+    correct = 0
+
+    for i in range(0, len(result)):
+        if((data_true_results.tolist())[i] == int(round(result[i], 0))):
+            correct += 1
+
+    print(f"Correct: {correct}\nTotal: {len(result)}")
 
 
-plt.plot([i for i in range(0, 1000)], train())
+df = pd.read_csv('cancer.csv')
+df_train = df[:int(len(df) * 0.9)]
+df_test = df[int(len(df) * 0.9):]
+
+costs, WX, bx = train(df_train)
+test(df_test, WX, bx)
+
+plt.plot([i for i in range(0, 1000)], costs)
 plt.show()
