@@ -42,9 +42,9 @@ def prepare_data(data, data_result, n):
 
     return A0, Y, m
 
-def train(data):
-    epochs = 1000 # training for 1000 iterations
-    alpha = 0.01 # set learning rate to 0.1
+def train(data, test_data):
+    epochs = 1500 # training for 1000 iterations
+    alpha = 0.011 # set learning rate to 0.1
     costs = [] # list to store costs
 
     initial_data_result = np.array(data['result'].values.tolist())
@@ -63,6 +63,8 @@ def train(data):
 
     for i in range(1, len(n)): # initializing random biases for all of our connections b1 = 2 x 1, b2 = 3 X 1, b3 = 3 x 1
         bx.append(np.random.randn(n[i], 1) )
+
+    cache_results_per_epoch = []
 
     for e in range(epochs):
         # 1. FEED FORWARD
@@ -83,8 +85,9 @@ def train(data):
         for i in range(0, len(bx)):
             bx[i] = bx[i] - (alpha * biases_backprop[i])
 
+        cache_results_per_epoch.append(test(test_data, WX, bx))
 
-    return costs, WX, bx
+    return costs, WX, bx, cache_results_per_epoch
 
 def test(data, WX, bx):
     data_true_results = np.array(data['result'].values.tolist())
@@ -105,14 +108,14 @@ def test(data, WX, bx):
             correct += 1
 
     print(f"Correct: {correct}\nTotal: {len(result)}")
+    return float(correct)/float(len(result)) * 100
 
 
 df = pd.read_csv('cancer.csv')
 df_train = df[:int(len(df) * 0.9)]
 df_test = df[int(len(df) * 0.9):]
 
-costs, WX, bx = train(df_train)
-test(df_test, WX, bx)
+costs, WX, bx, cache_res = train(df_train, test_data=df_test)
 
-plt.plot([i for i in range(0, 1000)], costs)
+plt.plot([i for i in range(0, 1500)], cache_res)
 plt.show()
