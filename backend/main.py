@@ -2,7 +2,7 @@ import numpy as np
 from backprop import backprop
 import matplotlib.pyplot as plt
 import pandas as pd
-import math
+
 
 def sigmoid(arr):
   return 1 / (1 + np.exp(-1 * arr))
@@ -44,7 +44,7 @@ def prepare_data(data, data_result, n):
 
 def train(data):
     epochs = 1000 # training for 1000 iterations
-    alpha = 0.01 # set learning rate to 0.1
+    alpha = 0.0001 # set learning rate to 0.1
     costs = [] # list to store costs
 
     initial_data_result = np.array(data['result'].values.tolist())
