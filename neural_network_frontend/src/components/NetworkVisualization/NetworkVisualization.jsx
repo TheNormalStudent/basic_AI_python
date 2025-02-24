@@ -16,8 +16,16 @@ function NetworkVisualization({ layers, children }){
     }, []);
 
     const calculateY = (radius, svgHeight, neurons_count, index) => {
-        const top_space = (svgHeight - neurons_count*radius*2)/2;
-        return radius * index * 2 + top_space + radius;
+        const maxLayers = Math.max.apply(null, layers)
+
+        if(neurons_count == 1) return svgHeight/2;
+        if(neurons_count == maxLayers && radius * neurons_count * 2 >= svgHeight) return radius + index * radius * 2
+
+        let totalSpaceLeft = (svgHeight - radius * neurons_count * 2);
+        let spread = 0.6;
+        let betweenSpacing = (totalSpaceLeft * spread) / (neurons_count-1);
+        let side_spacing = (totalSpaceLeft - betweenSpacing * (neurons_count-1))/2;
+        return side_spacing + radius + (radius * 2 + betweenSpacing) * index ;
     };
 
     const calculateX = (radius, svgWidth, layersLength, layerIdx) => {

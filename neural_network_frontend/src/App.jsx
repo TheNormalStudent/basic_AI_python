@@ -9,12 +9,28 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 
 function App() {
   const [darkMode, setDarkMode] = useState(true);
+  const [DataSettingsControl, setDataSettingsControl] = useState({
+    'dataImported': false,
+    'testSet': null, 
+    'trainSet': null,
+    'validateSet': null,
+    'highlightValidationErrors': null
+  });
 
   const theme = createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
     },
   });
+
+  function updateSetDataSettingsControl(settingName, newValue)
+  {
+  
+    let newDataSetControl = {...DataSettingsControl}
+    newDataSetControl[settingName] = newValue;
+    setDataSettingsControl(newDataSetControl);
+    console.log("i was tried to have been updated", newDataSetControl)
+  }
 
   const toggleTheme = () => setDarkMode((prev) => !prev);
 
@@ -35,13 +51,13 @@ function App() {
       </AppBar>
       <Grid container spacing={3} rowSpacing={3} padding={2}>
         <Grid size={6}>
-            <DataSettings></DataSettings>
+            <DataSettings UpdateDataSettingsContext={updateSetDataSettingsControl}></DataSettings>
         </Grid>
         <Grid size={6}>
-          <NetworkVisualization layers={[2, 4, 5, 6, 1]}></NetworkVisualization>
+          <NetworkVisualization layers={[30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 1]}></NetworkVisualization>
         </Grid>
         <Grid size={6}>
-          <ModelSettings></ModelSettings>
+          <ModelSettings DataSettingsConnector={DataSettingsControl}></ModelSettings>
         </Grid>
         <Grid size={6}>
           <EpochGraph></EpochGraph>
