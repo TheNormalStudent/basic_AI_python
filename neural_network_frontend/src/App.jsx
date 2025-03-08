@@ -54,7 +54,7 @@ function App() {
             <DataSettings UpdateDataSettingsContext={updateSetDataSettingsControl}></DataSettings>
         </Grid>
         <Grid size={6}>
-          <NetworkVisualization layers={[30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 1]}></NetworkVisualization>
+          <NetworkVisualization status={"feed forward"} layers={[30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 1]}></NetworkVisualization>
         </Grid>
         <Grid size={6}>
           <ModelSettings DataSettingsConnector={DataSettingsControl}></ModelSettings>

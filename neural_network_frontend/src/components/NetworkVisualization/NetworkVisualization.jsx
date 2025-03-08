@@ -1,9 +1,9 @@
 import Block from '../Block/Block';
 import {useState, useCallback, useRef, useEffect} from 'react'
 import { height, padding, width } from '@mui/system';
-import { MarginOutlined } from '@mui/icons-material';
+import { MarginOutlined, StarOutline } from '@mui/icons-material';
 
-function NetworkVisualization({ layers, children }){
+function NetworkVisualization({ status, layers, children }){
     const max_good_drawn_layers = 10;
     const svgRef = useRef(null);
     const [svgSize, setSvgSize] = useState({width: 0, height: 0})
@@ -48,7 +48,7 @@ function NetworkVisualization({ layers, children }){
     }
 
     return (
-        <Block blockName={"Network Visualization"} >
+        <Block blockName={`Network Visualization (${status})`} >
             <svg width="100%" height="100%" ref={svgRef} >
                 {svgSize.width > 0 && layers.map((neurons, layerIdx) => (
                     Array.from({ length: neurons }).map((_, neuronIdx) => {
