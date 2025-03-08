@@ -2,7 +2,7 @@ import Block from "../Block/Block";
 import Grid from '@mui/material/Grid2';
 import { Button, InputAdornment, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from "react";
-import checkAndSetFloat from "../../utils/checkAndSetFloat";
+import {checkAndSetFloat} from "../../utils/checkAndSetNumbers";
 
 export default function DataSettings({ UpdateDataSettingsContext })
 {
