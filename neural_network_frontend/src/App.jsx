@@ -11,8 +11,8 @@ function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [DataSettingsControl, setDataSettingsControl] = useState({
     'dataImported': false,
-    'testSet': null, 
     'trainSet': null,
+    'testSet': null, 
     'validateSet': null,
     'highlightValidationErrors': null
   });
@@ -25,11 +25,9 @@ function App() {
 
   function updateSetDataSettingsControl(settingName, newValue)
   {
-  
     let newDataSetControl = {...DataSettingsControl}
     newDataSetControl[settingName] = newValue;
     setDataSettingsControl(newDataSetControl);
-    console.log("i was tried to have been updated", newDataSetControl)
   }
 
   const toggleTheme = () => setDarkMode((prev) => !prev);
@@ -60,7 +58,7 @@ function App() {
           <ModelSettings DataSettingsConnector={DataSettingsControl}></ModelSettings>
         </Grid>
         <Grid size={6}>
-          <EpochGraph></EpochGraph>
+          <EpochGraph xData={[...Array(1000).keys()]} yData={[...Array(1000).keys()]}></EpochGraph>
         </Grid>
       </Grid>
     </ThemeProvider>

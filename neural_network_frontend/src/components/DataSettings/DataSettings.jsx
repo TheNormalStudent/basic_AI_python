@@ -1,23 +1,43 @@
 import Block from "../Block/Block";
 import Grid from '@mui/material/Grid2';
 import { Button, InputAdornment, TextField, Typography } from '@mui/material';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {checkAndSetFloat} from "../../utils/checkAndSetNumbers";
+import { uploadFile } from "../../api/backend_api";
 
 export default function DataSettings({ UpdateDataSettingsContext })
 {
     const [currentTrainSet, setCurrentTrainSet] = useState(null);
     const [currentTestSet, setCurrentTestSet] = useState(null);
     const [currentValidationSet, setCurrentValidationSet] = useState(null);
+    const [file, setFile] = useState(null);
+
+    const inputRef = useRef(null);
 
     useEffect(() => {
-        console.log("Rendered datasettins");
         UpdateDataSettingsContext('highlightValidationErrors', () => {
             if(currentTrainSet == null) setCurrentTrainSet(NaN);
             if(currentTestSet == null) setCurrentTestSet(NaN);
         }) 
     }, [currentTrainSet, currentTestSet]);
 
+    const handleInputClick = () => {
+        console.log('uo')
+        console.log(inputRef.current);
+        inputRef.current?.click();
+    };
+
+    const handleFileChange = () => {
+        setFile(inputRef.current.files[0]);
+
+        uploadFile.uploadfile({file: inputRef.current.files[0]})
+        .then((response) => {
+            UpdateDataSettingsContext('dataImported', true);
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+    }
 
     return(<>
         <Block blockName={"Data Settings"}>
@@ -26,48 +46,41 @@ export default function DataSettings({ UpdateDataSettingsContext })
                 <Typography variant="h5" style={{ marginTop: 9}} align="right">Train: </Typography>
             </Grid>
             <Grid size={7}>
-                <TextField required 
-                error={isNaN(currentTrainSet)}
-                sx={{'.MuiInputBase-input': { fontSize: '1rem' }, }} 
-                placeholder="80" variant="outlined" 
-                slotProps={{ input: {endAdornment: <InputAdornment position="end">%</InputAdornment>}, inputLabel: {shrink: true} }} 
-                label="Required" onChange={(e) => {checkAndSetFloat(e.target.value, setCurrentTrainSet); UpdateDataSettingsContext('trainSet', 
-                    parseFloat(e.target.value))}}
-                ></TextField>
+                <PercentTextField error_set={currentTrainSet} updateFunc={(value) => UpdateDataSettingsContext('trainSet', value)} setSet={setCurrentTrainSet} />
             </Grid>
 
             <Grid size={5}>
                 <Typography variant="h5" style={{ marginTop: 9}} align="right">Test: </Typography>
             </Grid>
             <Grid size={7}>
-                <TextField  
-                error={isNaN(currentTestSet)}
-                required sx={{'.MuiInputBase-input': { fontSize: '1rem' }, }} 
-                placeholder="10" variant="outlined" 
-                slotProps={{ input: {endAdornment: <InputAdornment position="end">%</InputAdornment>}, inputLabel: {shrink: true} }} 
-                label="Required" onChange={(e) => {checkAndSetFloat(e.target.value, setCurrentTestSet); UpdateDataSettingsContext('testSet', 
-                    parseFloat(e.target.value))}}
-                ></TextField>
+                <PercentTextField error_set={currentTestSet} updateFunc={(value) => UpdateDataSettingsContext('testSet', value)} setSet={setCurrentTestSet} />
             </Grid>
 
             <Grid size={5}>
                 <Typography variant="h5" style={{ marginTop: 9}} align="right">Validate: </Typography>
             </Grid>
             <Grid size={7}>
-                <TextField 
-                error={isNaN(currentValidationSet)}
-                sx={{'.MuiInputBase-input': { fontSize: '1rem' }, }} 
-                placeholder="10" variant="outlined" 
-                slotProps={{ input: {endAdornment: <InputAdornment position="end">%</InputAdornment>}}} 
-                onChange={(e) => {checkAndSetFloat(e.target.value, setCurrentValidationSet); UpdateDataSettingsContext('validateSet', 
-                    parseFloat(e.target.value))}}
-                ></TextField>
+                <PercentTextField error_set={currentValidationSet} updateFunc={(value) => UpdateDataSettingsContext('validateSet', value)} setSet={setCurrentValidationSet} />
             </Grid>
 
             <Grid size={12} textAlign={"center"} >
-                <Button variant="outlined" size="large">Import Data</Button>
+                <Button variant="outlined" size="large" sx={{borderColor: (file ? "green" : "red")}} onClick={() => handleInputClick()}>Import Data</Button>
             </Grid>
+
+            <input ref = {inputRef} style={{display: "none"}} type="file" onChange={() => handleFileChange()}/>
         </Grid>
         </Block>
     </>);
+}
+
+function PercentTextField({error_set, updateFunc, setSet})
+{
+    return (          
+    <TextField 
+    error={isNaN(error_set)}
+    sx={{'.MuiInputBase-input': { fontSize: '1rem' }, }} 
+    placeholder="10" variant="outlined" 
+    slotProps={{ input: {endAdornment: <InputAdornment position="end">%</InputAdornment>}}} 
+    onChange={(e) => {checkAndSetFloat(e.target.value, setSet); updateFunc(e.target.value) }}
+    />)
 }

@@ -1,18 +1,25 @@
 from typing import Annotated
 from pydantic import BaseModel
 from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 
 from NeuralNetwork import NeuralNetwork
+from request_models import TrainParameters
 
 app = FastAPI()
 
-class TrainParameters(BaseModel):
-    alpha: float
-    layers: list[int]
-    epochs: int
-    train_set_percentage: int
-    test_set_percentage: int
-    validate_set_percentage: int | None
+origins = [
+    "http://localhost",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 train_data = None
 
@@ -27,4 +34,8 @@ async def create_upload_file(file: UploadFile):
 
 @app.post("/train-model")
 async def train_model(train_parametrs: TrainParameters):
-    train_data = NeuralNetwork(train_parametrs.layers)
+    print(train_parametrs)
+
+@app.post('/train-model/abort')
+async def abort_training_model():
+    print('aborted')

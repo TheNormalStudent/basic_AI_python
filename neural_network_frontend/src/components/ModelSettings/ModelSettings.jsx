@@ -2,50 +2,30 @@ import Block from "../Block/Block";
 import Grid from '@mui/material/Grid2';
 import { Button, TextField, Typography } from '@mui/material';
 import { useState } from "react";
-import { checkAndSetFloat, checkAndSetInt } from "../../utils/checkAndSetNumbers";
+import { checkAndSetFloat, checkAndSetInt, parseNumberList } from "../../utils/checkAndSetNumbers";
+import { trainApi } from "../../api/backend_api";
 
 export default function ModelSettings({ DataSettingsConnector })
 {
-    const re_layers = /^\d+(,\s*\d+)*$/;
     const [currentAlpha, setCurrentAlpha] = useState(null);
     const [currentLayers, setCurrentLayers] = useState([0]);
     const [currentEpochs, setCurrentEpochs] = useState(null);
 
-    function checkAndSetAlpha(e)
-    {
-        checkAndSetFloat(e.target.value, setCurrentAlpha);
-    }
+    const checkAndSetAlpha = (e) => checkAndSetFloat(e.target.value, setCurrentAlpha);
 
-    function checkAndSetLayers(e)
+    const checkAndSetLayers = (e) =>
     {
-        function parseNumberList(input) {
-        
-            if (!re_layers.test(input)) {
-                throw new Error("Invalid input format");
-            }
-        
-            return input.split(",").map(num => parseInt(num.trim(), 10));
-        }
-
-        const layer_string = e.target.value;
-        
-        try{
-            const arr = parseNumberList(layer_string);
-            console.log(arr);
+       try{
+            const arr = parseNumberList(e.target.value);
             setCurrentLayers(arr);
         }
         catch
-        {
-            setCurrentLayers(null);
-        }
+        { setCurrentLayers(null); }
     }
 
-    function checkAndSetEpochs(e)
-    {
-        checkAndSetInt(e.target.value, setCurrentEpochs);
-    }
+    const checkAndSetEpochs = (e) => checkAndSetInt(e.target.value, setCurrentEpochs);
 
-    function onTrainClick()
+    async function onTrainClick()
     {
         let to_ret = false;
         if(currentAlpha === null || isNaN(currentAlpha)) {setCurrentAlpha(NaN); to_ret = true;}
@@ -53,20 +33,18 @@ export default function ModelSettings({ DataSettingsConnector })
         if(currentLayers === null || JSON.stringify(currentLayers) === JSON.stringify([0])){setCurrentLayers(null); to_ret = true;}
         if(DataSettingsConnector['testSet'] === null || isNaN(DataSettingsConnector['testSet'])){to_ret = true;}
         if(DataSettingsConnector['trainSet'] === null || isNaN(DataSettingsConnector['trainSet'])){to_ret = true;}
+        if(!DataSettingsConnector['dataImported']) {to_ret = true;}
 
         DataSettingsConnector['highlightValidationErrors']();
         if(to_ret) return;
 
-        
-
-        alert(`Train is ongoing now with theese parameters. \nAlpha: ${currentAlpha}. 
-            \nLayers: ${currentLayers}
-            \nEpochs: ${currentEpochs}
-            \nTestSet: ${DataSettingsConnector['testSet']}
-            \nTrainSet: ${DataSettingsConnector['trainSet']}
-            \nValidateSet: ${DataSettingsConnector['validateSet']}
-
-            `)
+        await trainApi.train({
+            alpha: currentAlpha, 
+            layers: currentLayers, 
+            epochs: currentEpochs, 
+            train_set_percentage: DataSettingsConnector['trainSet'], 
+            test_set_percentage: DataSettingsConnector['testSet']
+        });
     }
 
     return(<>

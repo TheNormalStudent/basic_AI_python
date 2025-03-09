@@ -108,13 +108,13 @@ class NeuralNetwork():
         return correct, result
     
 
-network = NeuralNetwork([30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1], 1000, 0.0001)
-df = pd.read_csv('cancer.csv')
-df_train = df[:int(len(df) * 0.9)]
-df_test = df[int(len(df) * 0.9):]
+# network = NeuralNetwork([30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1], 1000, 0.0001)
+# df = pd.read_csv('cancer.csv')
+# df_train = df[:int(len(df) * 0.9)]
+# df_test = df[int(len(df) * 0.9):]
 
-costs, WX, bx = network.train(df_train)
-network.test(df_test, WX, bx)
+# costs, WX, bx = network.train(df_train)
+# network.test(df_test, WX, bx)
 
-plt.plot([i for i in range(0, 1000)], costs)
-plt.show()  
+# plt.plot([i for i in range(0, 1000)], costs)
+# plt.show()  
