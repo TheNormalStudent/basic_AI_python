@@ -58,7 +58,7 @@ function App() {
           <ModelSettings DataSettingsConnector={DataSettingsControl}></ModelSettings>
         </Grid>
         <Grid size={6}>
-          <EpochGraph xData={[...Array(1000).keys()]} yData={[...Array(1000).keys()]}></EpochGraph>
+          <EpochGraph ></EpochGraph>
         </Grid>
       </Grid>
     </ThemeProvider>

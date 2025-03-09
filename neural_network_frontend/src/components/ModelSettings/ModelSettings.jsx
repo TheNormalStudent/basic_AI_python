@@ -38,13 +38,20 @@ export default function ModelSettings({ DataSettingsConnector })
         DataSettingsConnector['highlightValidationErrors']();
         if(to_ret) return;
 
-        await trainApi.train({
+        trainApi.train({
             alpha: currentAlpha, 
             layers: currentLayers, 
             epochs: currentEpochs, 
             train_set_percentage: DataSettingsConnector['trainSet'], 
             test_set_percentage: DataSettingsConnector['testSet']
+        })
+        .then(function (response) {
+            console.log(response);
+        })
+        .catch(function (error) {
+        console.log(error);
         });
+
     }
 
     return(<>

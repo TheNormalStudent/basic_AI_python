@@ -8,3 +8,7 @@ class TrainParameters(BaseModel):
     train_set_percentage: int
     test_set_percentage: int
     validate_set_percentage: int | None = None
+
+class EpochGraphUpdate(BaseModel):
+    epoch: int
+    cost: int

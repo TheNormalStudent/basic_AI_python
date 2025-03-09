@@ -2,7 +2,7 @@ import numpy as np
 from backprop import backprop
 import matplotlib.pyplot as plt
 import pandas as pd
-    
+import time
 
 class NeuralNetwork():
     def __init__(self, architecture, epochs_count, alpha):
@@ -56,7 +56,7 @@ class NeuralNetwork():
 
         return np.sum(summed_losses)
     
-    def train(self, data):
+    def train(self, data, epoch_graph_callback, visualization_callback):
         epochs = self.epochs_count # training for 1000 iterations
         alpha = self.alpha # set learning rate to 0.1
         costs = [] # list to store costs
@@ -66,7 +66,6 @@ class NeuralNetwork():
         data = np.array(data.drop(columns=['result']).values.tolist())
 
         A0, Y, m = self.__prepare_data(data=data, data_result=initial_data_result, n=self.architecture)
-
         for e in range(epochs):
             # 1. FEED FORWARD
             AX_cache = self.__feed_forward(A0, self.WX, self.bx, self.architecture)
@@ -85,7 +84,10 @@ class NeuralNetwork():
 
             for i in range(0, len(self.bx)):
                 self.bx[i] = self.bx[i] - (alpha * biases_backprop[i])
-
+            print(e)
+            epoch_graph_callback(e, error)
+            # time.sleep(1)
+        print('finished training model')
 
         return costs, self.WX, self.bx
     
