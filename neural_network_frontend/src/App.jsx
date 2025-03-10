@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Switch, CssBaseline } from '@mui/material';
 import Grid from '@mui/material/Grid2';
-import { Brightness4, Brightness7, Mode } from '@mui/icons-material';
+import { Brightness4, Brightness7 } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { EpochGraph, NetworkVisualization, ModelSettings, DataSettings}  from './index';
 import GitHubIcon from '@mui/icons-material/GitHub';
@@ -17,6 +17,8 @@ function App() {
   });
   const [modelArchitecture, setModelArchitecture] = useState([])
   const [fromClear, setFromClear] = useState(false);
+  const [isTraining, setIsTraining] = useState(null);
+
   const theme = createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
@@ -55,7 +57,7 @@ function App() {
           <NetworkVisualization layers={modelArchitecture}></NetworkVisualization>
         </Grid>
         <Grid size={6}>
-          <ModelSettings DataSettingsConnector={DataSettingsControl} updateModelArch={setModelArchitecture} setFromClear={setFromClear}></ModelSettings>
+          <ModelSettings DataSettingsConnector={DataSettingsControl} updateModelArch={setModelArchitecture} setFromClear={setFromClear} setIsTraining={setIsTraining} isTraining={isTraining}></ModelSettings>
         </Grid>
         <Grid size={6}>
           <EpochGraph fromClear={fromClear} setFromClear={setFromClear}></EpochGraph>

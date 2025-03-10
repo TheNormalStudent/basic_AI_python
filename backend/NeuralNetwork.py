@@ -10,9 +10,10 @@ class NeuralNetwork():
         self.alpha = alpha
         self.architecture = architecture
         self.WX = []
+        self.abort = False
 
         for i in range(0, len(architecture)-1): # initializing random weights for all of our connections W1 = 2 x 3, W2 = 3 X 3, W3 = 3 x 1
-            self.WX.append(np.random.randn(architecture[i+1], architecture[i]))
+            self.WX.append(np.random.randn(architecture[i+1], architecture[i]) * np.sqrt(1 / architecture[i]))
 
         self.bx = []
 
@@ -50,13 +51,8 @@ class NeuralNetwork():
         return cache_of_AX
     
     def __cost_count(self, hat_y, y):
-        losses = - ( (y * np.log(hat_y)) + (1 - y) * np.log(1 - hat_y) )
-
-        m = hat_y.reshape(-1).shape[0]
-
-        summed_losses = (1 / m) * np.sum(losses, axis=1)
-
-        return np.sum(summed_losses)
+        m = y.shape[1]
+        return (-1 / m) * np.sum(y * np.log(hat_y + 1e-9) + (1 - y) * np.log(1 - hat_y + 1e-9))
     
     def train(self, data, epoch_graph_callback, visualization_callback, training_min_time):
         epochs = self.epochs_count # training for 1000 iterations
@@ -68,9 +64,12 @@ class NeuralNetwork():
         data = np.array(data.drop(columns=['result']).values.tolist())
 
         A0, Y, m = self.__prepare_data(data=data, data_result=initial_data_result, n=self.architecture)
+
         for e in range(epochs):
+            if(self.abort): 
+                return None
+
             # 1. FEED FORWARD
-            print(len(self.architecture))
             AX_cache = self.__feed_forward(A0, self.WX, self.bx, self.architecture, visualization_callback, (training_min_time/epochs/2) / len(self.architecture))
 
             # 2. COST CALCULATION
@@ -82,14 +81,14 @@ class NeuralNetwork():
             weights_backprop, biases_backprop = backprop(AX_cache, self.WX, self.architecture, m, Y, visualization_callback, (training_min_time/epochs/2) / len(self.architecture))
 
             # 4. UPDATE WEIGHTS
-            for i in range(0, len(self.WX)):
-                self.WX[i] = self.WX[i] - (alpha * weights_backprop[i])
-
-            for i in range(0, len(self.bx)):
-                self.bx[i] = self.bx[i] - (alpha * biases_backprop[i])
+            self.WX = [W - alpha * dW for W, dW in zip(self.WX, weights_backprop)]
+            self.bx = [b - alpha * db for b, db in zip(self.bx, biases_backprop)]
             print(e)
             epoch_graph_callback(e, error)
+            
+
         print('finished training model')
+        visualization_callback(-1, "finished learning")
 
         return costs, self.WX, self.bx
     

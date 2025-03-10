@@ -1,10 +1,10 @@
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import List, Annotated
 
 class TrainParameters(BaseModel):
-    alpha: float
-    layers: List[int]
-    epochs: int
-    train_set_percentage: int
-    test_set_percentage: int
-    validate_set_percentage: int | None = None
+    alpha: Annotated[float, Field(gt=0)]
+    layers: list[Annotated[int, Field(gt=1)]]
+    epochs: Annotated[int, Field(gt=0)]
+    train_set_percentage: Annotated[float, Field(ge=0, le=100)]
+    test_set_percentage: Annotated[float, Field(ge=0, le=100)]
+    validate_set_percentage: Annotated[float, Field(ge=0, le=100)] | None = None

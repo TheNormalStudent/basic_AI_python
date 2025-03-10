@@ -1,7 +1,5 @@
 import Block from '../Block/Block';
-import {useState, useCallback, useRef, useEffect} from 'react'
-import { height, padding, width } from '@mui/system';
-import { BrushRounded, MarginOutlined, StarOutline } from '@mui/icons-material';
+import {useState, useRef, useEffect} from 'react'
 import { visualization_status } from '../../consts/default';
 import { useVisulizationStatus } from '../../hooks/useVisualizationStatus';
 
@@ -58,7 +56,7 @@ function NetworkVisualization({ layers, children }){
                         const radius = calculateRadius(svgSize.height, svgSize.width)
                         if(layerIdx === 0) var x = radius;
                         else var x = calculateX(radius, svgSize.width, layers.length, layerIdx);
-                        const y = calculateY(radius, svgSize.height, neurons,neuronIdx);
+                        const y = calculateY(radius, svgSize.height, neurons, neuronIdx);
                         
                         // Draw connections to next layer
                         const lines = [];

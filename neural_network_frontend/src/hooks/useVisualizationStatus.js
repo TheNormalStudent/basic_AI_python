@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import { apiInstance } from '../api/backend_api';
+import { visualization_status } from '../consts/default';
 
 export const useVisulizationStatus = () =>
 {
-    const [status, setStatus] = useState(null)
+    const [status, setStatus] = useState(visualization_status.NOT_KNOWN)
     const [activeLayerIndex, setActiveLayerIndex] = useState(null)
 
     useEffect(() => {

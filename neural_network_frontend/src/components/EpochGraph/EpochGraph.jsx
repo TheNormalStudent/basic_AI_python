@@ -11,10 +11,10 @@ export default function EpochGraph({fromClear, setFromClear})
         <Block blockName={"Epoch Graph"} >
             <div style={{height: "100%"}}>          
                 <LineChart
-                xAxis={[{ data: xData }]}
+                xAxis={[{ data: xData, label: "Epoch" }]}
                 series={[
                     {
-                    data: yData, showMark: false
+                    data: yData, showMark: false, label: "Cost"
                     },
                 ]}
                 />

@@ -1,59 +1,67 @@
 import Block from "../Block/Block";
 import Grid from '@mui/material/Grid2';
 import { Button, TextField, Typography } from '@mui/material';
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { checkAndSetFloat, checkAndSetInt, parseNumberList } from "../../utils/checkAndSetNumbers";
 import { trainApi } from "../../api/backend_api";
 
-export default function ModelSettings({ DataSettingsConnector, updateModelArch, setFromClear })
+export default function ModelSettings({ DataSettingsConnector, updateModelArch, setFromClear, setIsTraining, isTraining })
 {
     const [currentAlpha, setCurrentAlpha] = useState(null);
     const [currentLayers, setCurrentLayers] = useState([0]);
     const [currentEpochs, setCurrentEpochs] = useState(null);
 
-    const checkAndSetAlpha = (e) => checkAndSetFloat(e.target.value, setCurrentAlpha);
+    const handleAlphaChange = useCallback((e) => checkAndSetFloat(e.target.value, setCurrentAlpha), []);
+    const handleEpochsChange = useCallback((e) => checkAndSetInt(e.target.value, setCurrentEpochs), []);
 
-    const checkAndSetLayers = (e) =>
-    {
-       try{
-            const arr = parseNumberList(e.target.value);
-            setCurrentLayers(arr);
+    const handleLayersChange = useCallback((e) => {
+        try {
+            setCurrentLayers(parseNumberList(e.target.value));
+        } catch {
+            setCurrentLayers(null);
         }
-        catch
-        { setCurrentLayers(null); }
-    }
+    }, []);
+    
 
-    const checkAndSetEpochs = (e) => checkAndSetInt(e.target.value, setCurrentEpochs);
+    const handleTrainClick = useCallback(async () => {
+        if (isTraining) {
+            try {
+                await trainApi.abort();
+                setIsTraining(false);
+            } catch (error) {
+                console.error("Error aborting training:", error);
+            }
+            return;
+        }
 
-    async function onTrainClick()
-    {
-        let to_ret = false;
-        if(currentAlpha === null || isNaN(currentAlpha)) {setCurrentAlpha(NaN); to_ret = true;}
-        if(currentEpochs === null || isNaN(currentEpochs)) {setCurrentEpochs(NaN); to_ret = true;}
-        if(currentLayers === null || JSON.stringify(currentLayers) === JSON.stringify([0])){setCurrentLayers(null); to_ret = true;}
-        if(DataSettingsConnector['testSet'] === null || isNaN(DataSettingsConnector['testSet'])){to_ret = true;}
-        if(DataSettingsConnector['trainSet'] === null || isNaN(DataSettingsConnector['trainSet'])){to_ret = true;}
-        if(!DataSettingsConnector['dataImported']) {to_ret = true;}
+        let validationError = false;
 
-        DataSettingsConnector['highlightValidationErrors']();
-        if(to_ret) return;
+        if (currentAlpha === null || isNaN(currentAlpha)) { setCurrentAlpha(NaN); validationError = true; }
+        if (currentEpochs === null || isNaN(currentEpochs)) { setCurrentEpochs(NaN); validationError = true; }
+        if (!currentLayers || JSON.stringify(currentLayers) === JSON.stringify([0])) { setCurrentLayers(null); validationError = true; }
+        if (isNaN(DataSettingsConnector['testSet'])) { validationError = true; }
+        if (isNaN(DataSettingsConnector['trainSet'])) { validationError = true; }
+        if (!DataSettingsConnector['dataImported']) { validationError = true; }
+
+        DataSettingsConnector.highlightValidationErrors();
+        if (validationError) return;
+
         setFromClear(true);
-        trainApi.train({
-            alpha: currentAlpha, 
-            layers: currentLayers, 
-            epochs: currentEpochs, 
-            train_set_percentage: DataSettingsConnector['trainSet'], 
-            test_set_percentage: DataSettingsConnector['testSet']
-        })
-        .then(function (response) {
-            console.log(response);
+        
+        try {
+            const response = await trainApi.train({
+                alpha: currentAlpha,
+                layers: currentLayers,
+                epochs: currentEpochs,
+                train_set_percentage: DataSettingsConnector['trainSet'],
+                test_set_percentage: DataSettingsConnector['testSet']
+            });
             updateModelArch(response.data);
-        })
-        .catch(function (error) {
-            console.log(error);
-        });
-
-    }
+            setIsTraining(true);
+        } catch (error) {
+            console.error("Error during training:", error);
+        }
+    }, [currentAlpha, currentLayers, currentEpochs, isTraining, DataSettingsConnector, updateModelArch, setFromClear, setIsTraining]);
 
     return(<>
         <Block blockName={"Model Settings"}>
@@ -64,7 +72,7 @@ export default function ModelSettings({ DataSettingsConnector, updateModelArch, 
             </Grid>
             <Grid size={7}>
                 <TextField required error={isNaN(currentAlpha)} sx={{'.MuiInputBase-input': { fontSize: '1rem' }, }} 
-                onChange={(e) => (checkAndSetAlpha(e))} placeholder="0.001" variant="outlined"
+                onChange={(e) => (handleAlphaChange(e))} placeholder="0.001" variant="outlined"
                 slotProps={{ inputLabel: {shrink: true} }} 
                 label="Required"></TextField>
             </Grid>
@@ -74,7 +82,7 @@ export default function ModelSettings({ DataSettingsConnector, updateModelArch, 
             </Grid>
             <Grid size={7}>
                 <TextField required error={currentLayers === null} sx={{'.MuiInputBase-input': { fontSize: '1rem' }, }} 
-                onChange={(e) => (checkAndSetLayers(e))} placeholder="1, 2, 3, 4, 5" variant="outlined" 
+                onChange={(e) => (handleLayersChange(e))} placeholder="1, 2, 3, 4, 5" variant="outlined" 
                 slotProps={{ inputLabel: {shrink: true} }} 
                 label="Required"></TextField>
             </Grid>
@@ -84,7 +92,7 @@ export default function ModelSettings({ DataSettingsConnector, updateModelArch, 
             </Grid>
             <Grid size={7}>
                 <TextField required error={isNaN(currentEpochs)} sx={{'.MuiInputBase-input': { fontSize: '1rem' }, }} 
-                onChange={(e) => (checkAndSetEpochs(e))} placeholder="1000" variant="outlined" 
+                onChange={(e) => (handleEpochsChange(e))} placeholder="1000" variant="outlined" 
                 slotProps={{ inputLabel: {shrink: true} }} 
                 label="Required"></TextField>
             </Grid>
@@ -96,7 +104,7 @@ export default function ModelSettings({ DataSettingsConnector, updateModelArch, 
                 <Button variant="outlined" size="large">Export Network</Button>
             </Grid>
             <Grid size={4} textAlign={"center"} >
-                <Button onClick={() => onTrainClick()} variant="outlined" size="large">TRAIN</Button>
+                <Button onClick={() => handleTrainClick()} variant="outlined" size="large">{(isTraining ? "ABORT" : "TRAIN")}</Button>
             </Grid>
         </Grid>
         </Block>

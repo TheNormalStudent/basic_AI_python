@@ -7,7 +7,12 @@ export default function Block({ blockName, children })
 {
     return(
         <Card sx={{ height: "42.5vh" }}>
-            <div style={{height: "10%"}}><h3><center>{blockName}</center></h3></div>
+            <div style={{height: "10%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+            }}
+            ><h3>{blockName}</h3></div>
             <div style={{height: "80%", padding: "1vh"}}>{children}</div>
         </Card>
     );
