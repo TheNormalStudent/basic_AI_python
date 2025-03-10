@@ -1,12 +1,15 @@
 import Block from '../Block/Block';
 import {useState, useCallback, useRef, useEffect} from 'react'
 import { height, padding, width } from '@mui/system';
-import { MarginOutlined, StarOutline } from '@mui/icons-material';
+import { BrushRounded, MarginOutlined, StarOutline } from '@mui/icons-material';
+import { visualization_status } from '../../consts/default';
+import { useVisulizationStatus } from '../../hooks/useVisualizationStatus';
 
-function NetworkVisualization({ status, layers, children }){
+function NetworkVisualization({ layers, children }){
     const max_good_drawn_layers = 10;
     const svgRef = useRef(null);
     const [svgSize, setSvgSize] = useState({width: 0, height: 0})
+    const {status, activeLayerIndex} = useVisulizationStatus();
 
     useEffect(() => {
         if(svgRef.current)
@@ -53,7 +56,6 @@ function NetworkVisualization({ status, layers, children }){
                 {svgSize.width > 0 && layers.map((neurons, layerIdx) => (
                     Array.from({ length: neurons }).map((_, neuronIdx) => {
                         const radius = calculateRadius(svgSize.height, svgSize.width)
-
                         if(layerIdx === 0) var x = radius;
                         else var x = calculateX(radius, svgSize.width, layers.length, layerIdx);
                         const y = calculateY(radius, svgSize.height, neurons,neuronIdx);
@@ -79,6 +81,27 @@ function NetworkVisualization({ status, layers, children }){
                             }
                         }
 
+                        var fill = "white"
+                        console.log(status, activeLayerIndex)
+                        
+                        if(layerIdx === activeLayerIndex)
+                        {
+                            switch(status)
+                            {
+                                case visualization_status.FEED_FORWARD:
+                                {
+                                    fill = "#3dfcff"
+                                    break;
+                                }
+                                case visualization_status.BACKPROP:
+                                {
+                                    fill = "#ff4f3d"
+                                    break;
+                                }
+                            }
+                        }
+
+                            
                         // Draw neuron circle
                         const circle = (
                             <circle
@@ -86,7 +109,7 @@ function NetworkVisualization({ status, layers, children }){
                                 cx={x}
                                 cy={y}
                                 r={radius}
-                                fill="white"
+                                fill={fill}
                                 stroke="#333"
                                 strokeWidth="2"
                             />

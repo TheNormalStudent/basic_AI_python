@@ -36,7 +36,7 @@ class NeuralNetwork():
     def __sigmoid(self, arr):
         return 1 / (1 + np.exp(-1 * arr))
     
-    def __feed_forward(self, arr, WX, bx, n):
+    def __feed_forward(self, arr, WX, bx, n, visualization_callback, delay):
         cache_of_AX = []
         cache_of_AX.append(arr)
 
@@ -44,6 +44,8 @@ class NeuralNetwork():
             Z = WX[i - 1] @ arr + bx[i - 1]
             arr = self.__sigmoid(Z)
             cache_of_AX.append(arr)
+            visualization_callback(i, "feed forward")
+            time.sleep(delay)
 
         return cache_of_AX
     
@@ -56,7 +58,7 @@ class NeuralNetwork():
 
         return np.sum(summed_losses)
     
-    def train(self, data, epoch_graph_callback, visualization_callback):
+    def train(self, data, epoch_graph_callback, visualization_callback, training_min_time):
         epochs = self.epochs_count # training for 1000 iterations
         alpha = self.alpha # set learning rate to 0.1
         costs = [] # list to store costs
@@ -68,7 +70,8 @@ class NeuralNetwork():
         A0, Y, m = self.__prepare_data(data=data, data_result=initial_data_result, n=self.architecture)
         for e in range(epochs):
             # 1. FEED FORWARD
-            AX_cache = self.__feed_forward(A0, self.WX, self.bx, self.architecture)
+            print(len(self.architecture))
+            AX_cache = self.__feed_forward(A0, self.WX, self.bx, self.architecture, visualization_callback, (training_min_time/epochs/2) / len(self.architecture))
 
             # 2. COST CALCULATION
             error = self.__cost_count(AX_cache[len(AX_cache)-1], Y)
@@ -76,7 +79,7 @@ class NeuralNetwork():
 
             # 3. BACKPROP CALCULATIONS
 
-            weights_backprop, biases_backprop = backprop(AX_cache, self.WX, self.architecture, m, Y)
+            weights_backprop, biases_backprop = backprop(AX_cache, self.WX, self.architecture, m, Y, visualization_callback, (training_min_time/epochs/2) / len(self.architecture))
 
             # 4. UPDATE WEIGHTS
             for i in range(0, len(self.WX)):
@@ -86,7 +89,6 @@ class NeuralNetwork():
                 self.bx[i] = self.bx[i] - (alpha * biases_backprop[i])
             print(e)
             epoch_graph_callback(e, error)
-            # time.sleep(1)
         print('finished training model')
 
         return costs, self.WX, self.bx
@@ -108,15 +110,3 @@ class NeuralNetwork():
                 correct += 1
 
         return correct, result
-    
-
-# network = NeuralNetwork([30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1], 1000, 0.0001)
-# df = pd.read_csv('cancer.csv')
-# df_train = df[:int(len(df) * 0.9)]
-# df_test = df[int(len(df) * 0.9):]
-
-# costs, WX, bx = network.train(df_train)
-# network.test(df_test, WX, bx)
-
-# plt.plot([i for i in range(0, 1000)], costs)
-# plt.show()  

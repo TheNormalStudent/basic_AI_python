@@ -5,7 +5,7 @@ import { useState } from "react";
 import { checkAndSetFloat, checkAndSetInt, parseNumberList } from "../../utils/checkAndSetNumbers";
 import { trainApi } from "../../api/backend_api";
 
-export default function ModelSettings({ DataSettingsConnector })
+export default function ModelSettings({ DataSettingsConnector, updateModelArch, setFromClear })
 {
     const [currentAlpha, setCurrentAlpha] = useState(null);
     const [currentLayers, setCurrentLayers] = useState([0]);
@@ -37,7 +37,7 @@ export default function ModelSettings({ DataSettingsConnector })
 
         DataSettingsConnector['highlightValidationErrors']();
         if(to_ret) return;
-
+        setFromClear(true);
         trainApi.train({
             alpha: currentAlpha, 
             layers: currentLayers, 
@@ -47,9 +47,10 @@ export default function ModelSettings({ DataSettingsConnector })
         })
         .then(function (response) {
             console.log(response);
+            updateModelArch(response.data);
         })
         .catch(function (error) {
-        console.log(error);
+            console.log(error);
         });
 
     }

@@ -4,7 +4,6 @@ import Grid from '@mui/material/Grid2';
 import { Brightness4, Brightness7, Mode } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { EpochGraph, NetworkVisualization, ModelSettings, DataSettings}  from './index';
-import Block from './components/Block/Block';
 import GitHubIcon from '@mui/icons-material/GitHub';
 
 function App() {
@@ -16,7 +15,8 @@ function App() {
     'validateSet': null,
     'highlightValidationErrors': null
   });
-
+  const [modelArchitecture, setModelArchitecture] = useState([])
+  const [fromClear, setFromClear] = useState(false);
   const theme = createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
@@ -49,16 +49,16 @@ function App() {
       </AppBar>
       <Grid container spacing={3} rowSpacing={3} padding={2}>
         <Grid size={6}>
-            <DataSettings UpdateDataSettingsContext={updateSetDataSettingsControl}></DataSettings>
+            <DataSettings UpdateDataSettingsContext={updateSetDataSettingsControl} ></DataSettings>
         </Grid>
         <Grid size={6}>
-          <NetworkVisualization status={"feed forward"} layers={[30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 1]}></NetworkVisualization>
+          <NetworkVisualization layers={modelArchitecture}></NetworkVisualization>
         </Grid>
         <Grid size={6}>
-          <ModelSettings DataSettingsConnector={DataSettingsControl}></ModelSettings>
+          <ModelSettings DataSettingsConnector={DataSettingsControl} updateModelArch={setModelArchitecture} setFromClear={setFromClear}></ModelSettings>
         </Grid>
         <Grid size={6}>
-          <EpochGraph ></EpochGraph>
+          <EpochGraph fromClear={fromClear} setFromClear={setFromClear}></EpochGraph>
         </Grid>
       </Grid>
     </ThemeProvider>

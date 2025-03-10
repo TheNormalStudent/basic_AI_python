@@ -7,14 +7,14 @@ import numpy as np
 import pandas as pd
 
 from NeuralNetwork import NeuralNetwork
-from request_models import TrainParameters, EpochGraphUpdate
+from request_models import TrainParameters
 
 class Context:
     def __init__(self):
         self.train_data = None
         self.model = None
         self.epoch_graph_message_queue = asyncio.Queue()
-        self.visualization_message_quere = asyncio.Queue()
+        self.visualization_message_queue = asyncio.Queue()
 
 app = FastAPI()
 
@@ -65,7 +65,7 @@ async def train_model(train_parametrs: TrainParameters):
     train_data_set = df[:int(len(df) * train_parametrs.train_set_percentage)]
     architecture = [len(np.array(train_data_set.drop(columns=['result']).values.tolist()).T)] + train_parametrs.layers + [1]
     context.model = NeuralNetwork(architecture=architecture, epochs_count=train_parametrs.epochs, alpha=train_parametrs.alpha)
-    asyncio.create_task(asyncio.to_thread(context.model.train, train_data_set, trigger_graph_event_send_message, None))
+    asyncio.create_task(asyncio.to_thread(context.model.train, train_data_set, trigger_graph_event_send_message, trigger_visulization_send_message, 900))
     return architecture
 
 @app.post('/train-model/abort')
@@ -88,5 +88,26 @@ async def graph_event_stream():
 
 
 @app.get("/model/epoch-graph-update-stream")
-async def stream():
+async def graph_stream():
     return StreamingResponse(graph_event_stream(), media_type="text/event-stream")
+
+
+
+def trigger_visulization_send_message(activeLayer, status):
+    asyncio.run_coroutine_threadsafe(
+        context.visualization_message_queue.put(
+            json.dumps({"activeLayer": activeLayer, "status": status})
+        ),
+        MAIN_LOOP,
+    )
+
+async def visualization_event_stream():
+    while True:
+        message = await context.visualization_message_queue.get()  # Wait for an event
+        print('sent message')
+        yield f"data: {message}\n\n"  # Send the event to frontend
+
+
+@app.get("/model/visualization-update-stream")
+async def graph_stream():
+    return StreamingResponse(visualization_event_stream(), media_type="text/event-stream")
