@@ -22,8 +22,6 @@ export default function DataSettings({ UpdateDataSettingsContext })
     }, [currentTrainSet, currentTestSet]);
 
     const handleInputClick = () => {
-        console.log('uo')
-        console.log(inputRef.current);
         inputRef.current?.click();
     };
 

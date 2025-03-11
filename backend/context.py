@@ -5,6 +5,7 @@ class Context:
         self.train_data = None
         self.model = None
         self.epoch_graph_message_queue = asyncio.Queue()
+        self.epoch_graph_successs_perc_message_quere = asyncio.Queue()
         self.visualization_message_queue = asyncio.Queue()
 
 context = Context()

@@ -37,7 +37,7 @@ class NeuralNetwork():
     def __sigmoid(self, arr):
         return 1 / (1 + np.exp(-1 * arr))
     
-    def __feed_forward(self, arr, WX, bx, n, visualization_callback, delay):
+    def __feed_forward(self, arr, WX, bx, n, visualization_callback = None, delay = None):
         cache_of_AX = []
         cache_of_AX.append(arr)
 
@@ -45,8 +45,8 @@ class NeuralNetwork():
             Z = WX[i - 1] @ arr + bx[i - 1]
             arr = self.__sigmoid(Z)
             cache_of_AX.append(arr)
-            visualization_callback(i, "feed forward")
-            time.sleep(delay)
+            if(visualization_callback): visualization_callback(i, "feed forward")
+            if(delay): time.sleep(delay)
 
         return cache_of_AX
     
@@ -54,13 +54,13 @@ class NeuralNetwork():
         m = y.shape[1]
         return (-1 / m) * np.sum(y * np.log(hat_y + 1e-9) + (1 - y) * np.log(1 - hat_y + 1e-9))
     
-    def train(self, data, epoch_graph_callback, visualization_callback, training_min_time):
+    def train(self, data, test_data_set, epoch_graph_callback, visualization_callback, test_callback, training_min_time):
+        np.seterr(over='ignore')
         epochs = self.epochs_count # training for 1000 iterations
         alpha = self.alpha # set learning rate to 0.1
         costs = [] # list to store costs
 
         initial_data_result = np.array(data['result'].values.tolist())
-        
         data = np.array(data.drop(columns=['result']).values.tolist())
 
         A0, Y, m = self.__prepare_data(data=data, data_result=initial_data_result, n=self.architecture)
@@ -68,6 +68,9 @@ class NeuralNetwork():
         for e in range(epochs):
             if(self.abort): 
                 return None
+
+            correct, total = self.test(test_data_set)
+            test_callback(e, correct, total)
 
             # 1. FEED FORWARD
             AX_cache = self.__feed_forward(A0, self.WX, self.bx, self.architecture, visualization_callback, (training_min_time/epochs/2) / len(self.architecture))
@@ -83,24 +86,20 @@ class NeuralNetwork():
             # 4. UPDATE WEIGHTS
             self.WX = [W - alpha * dW for W, dW in zip(self.WX, weights_backprop)]
             self.bx = [b - alpha * db for b, db in zip(self.bx, biases_backprop)]
-            print(e)
             epoch_graph_callback(e, error)
-            
 
         print('finished training model')
         visualization_callback(-1, "finished learning")
 
         return costs, self.WX, self.bx
     
-    def test(self, data, WX, bx):
+    def test(self, data):
         data_true_results = np.array(data['result'].values.tolist())
         data_to_feed = np.array(data.drop(columns=['result']).values.tolist())
 
         data_to_feed, _, _ = self.__prepare_data(data_to_feed, data_true_results, self.architecture)
         
-        result = self.__feed_forward(data_to_feed, WX, bx, self.architecture)[-1][0]
-
-        print(result)
+        result = self.__feed_forward(data_to_feed, self.WX, self.bx, self.architecture, None, None)[-1][0]
 
         correct = 0
 
@@ -108,4 +107,4 @@ class NeuralNetwork():
             if((data_true_results.tolist())[i] == int(round(result[i], 0))):
                 correct += 1
 
-        return correct, result
+        return correct, len(result)

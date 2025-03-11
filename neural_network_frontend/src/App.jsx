@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Switch, CssBaseline } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
@@ -18,6 +18,7 @@ function App() {
   const [modelArchitecture, setModelArchitecture] = useState([])
   const [fromClear, setFromClear] = useState(false);
   const [isTraining, setIsTraining] = useState(null);
+  const clearEpochGraphsFunc = useRef(null);
 
   const theme = createTheme({
     palette: {
@@ -57,10 +58,16 @@ function App() {
           <NetworkVisualization layers={modelArchitecture}></NetworkVisualization>
         </Grid>
         <Grid size={6}>
-          <ModelSettings DataSettingsConnector={DataSettingsControl} updateModelArch={setModelArchitecture} setFromClear={setFromClear} setIsTraining={setIsTraining} isTraining={isTraining}></ModelSettings>
+          <ModelSettings DataSettingsConnector={DataSettingsControl} 
+          updateModelArch={setModelArchitecture} 
+          setFromClear={setFromClear} 
+          setIsTraining={setIsTraining} 
+          isTraining={isTraining}
+          clearEpochGraphsFuncRef={clearEpochGraphsFunc}
+          ></ModelSettings>
         </Grid>
         <Grid size={6}>
-          <EpochGraph fromClear={fromClear} setFromClear={setFromClear}></EpochGraph>
+          <EpochGraph clearEpochGraphsFuncRef={clearEpochGraphsFunc}></EpochGraph>
         </Grid>
       </Grid>
     </ThemeProvider>

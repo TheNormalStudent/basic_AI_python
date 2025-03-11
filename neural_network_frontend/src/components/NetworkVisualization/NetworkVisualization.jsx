@@ -3,7 +3,7 @@ import {useState, useRef, useEffect} from 'react'
 import { visualization_status } from '../../consts/default';
 import { useVisulizationStatus } from '../../hooks/useVisualizationStatus';
 
-function NetworkVisualization({ layers, children }){
+function NetworkVisualization({ layers }){
     const max_good_drawn_layers = 10;
     const svgRef = useRef(null);
     const [svgSize, setSvgSize] = useState({width: 0, height: 0})
@@ -80,7 +80,6 @@ function NetworkVisualization({ layers, children }){
                         }
 
                         var fill = "white"
-                        console.log(status, activeLayerIndex)
                         
                         if(layerIdx === activeLayerIndex)
                         {

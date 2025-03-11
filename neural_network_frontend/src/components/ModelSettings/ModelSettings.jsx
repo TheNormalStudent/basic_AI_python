@@ -1,16 +1,17 @@
 import Block from "../Block/Block";
 import Grid from '@mui/material/Grid2';
 import { Button, TextField, Typography } from '@mui/material';
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { checkAndSetFloat, checkAndSetInt, parseNumberList } from "../../utils/checkAndSetNumbers";
 import { trainApi } from "../../api/backend_api";
 
-export default function ModelSettings({ DataSettingsConnector, updateModelArch, setFromClear, setIsTraining, isTraining })
+export default function ModelSettings({ DataSettingsConnector, updateModelArch, setFromClear, setIsTraining, isTraining, clearEpochGraphsFuncRef })
 {
     const [currentAlpha, setCurrentAlpha] = useState(null);
     const [currentLayers, setCurrentLayers] = useState([0]);
     const [currentEpochs, setCurrentEpochs] = useState(null);
 
+    
     const handleAlphaChange = useCallback((e) => checkAndSetFloat(e.target.value, setCurrentAlpha), []);
     const handleEpochsChange = useCallback((e) => checkAndSetInt(e.target.value, setCurrentEpochs), []);
 
@@ -46,7 +47,7 @@ export default function ModelSettings({ DataSettingsConnector, updateModelArch, 
         DataSettingsConnector.highlightValidationErrors();
         if (validationError) return;
 
-        setFromClear(true);
+        clearEpochGraphsFuncRef.current();
         
         try {
             const response = await trainApi.train({

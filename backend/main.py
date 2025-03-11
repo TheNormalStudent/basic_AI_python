@@ -33,9 +33,7 @@ async def create_upload_file(file: UploadFile, context: Context = Depends(get_co
     file_location = f"train_data.csv"
     with open(file_location, "wb+") as file_object:
         file_object.write(file.file.read())
-
     context.train_data = file_location
-
     return {"filename": file.filename}  
 
 @app.post("/train-model")
@@ -48,7 +46,8 @@ async def train_model(train_parametrs: TrainParameters, context: Context = Depen
         raise HTTPException(status_code=400, detail="Test Set + Train Set percentages can not be more than 100.")
 
     df = pd.read_csv(context.train_data)
-    train_data_set = df[:int(len(df) * train_parametrs.train_set_percentage)]
+    train_data_set = df[:int(len(df) * train_parametrs.train_set_percentage / 100)]
+    test_data_set = df[int(len(df) * (100 - train_parametrs.test_set_percentage) / 100):]
     architecture = [len(np.array(train_data_set.drop(columns=['result']).values.tolist()).T)] + train_parametrs.layers + [1]
 
     context.model = NeuralNetwork(
@@ -57,7 +56,7 @@ async def train_model(train_parametrs: TrainParameters, context: Context = Depen
         alpha=train_parametrs.alpha)
 
     asyncio.create_task(asyncio.to_thread(
-        context.model.train, train_data_set, trigger_graph_event_send_message, trigger_visulization_send_message, 300
+        context.model.train, train_data_set, test_data_set, trigger_graph_event_send_message, trigger_visulization_send_message, trigger_perc_graph_event_send_message, 600
     ))
 
     return architecture
@@ -68,6 +67,15 @@ async def abort_training_model(context: Context = Depends(get_context)):
         context.model.abort = True
         context.model = None
 
+# streams
+
+async def event_stream(message_queue):
+    while True:
+        message = await message_queue.get()  # Wait for an event
+        yield f"data: {message}\n\n"  # Send the event to frontend
+
+# Epoch graph
+
 def trigger_graph_event_send_message(epochNumber, cost):
     asyncio.run_coroutine_threadsafe(
         get_context().epoch_graph_message_queue.put(
@@ -76,15 +84,25 @@ def trigger_graph_event_send_message(epochNumber, cost):
         MAIN_LOOP,
     )
 
-async def graph_event_stream():
-    while True:
-        message = await get_context().epoch_graph_message_queue.get()  # Wait for an event
-        yield f"data: {message}\n\n"  # Send the event to frontend
-
-
 @app.get("/model/epoch-graph-update-stream")
-async def graph_stream():
-    return StreamingResponse(graph_event_stream(), media_type="text/event-stream")
+async def graph_stream(context: Context = Depends(get_context)):
+    return StreamingResponse(event_stream(context.epoch_graph_message_queue), media_type="text/event-stream")
+
+# Success percentage epoch graph
+
+def trigger_perc_graph_event_send_message(epochNumber, correct, total,):
+    asyncio.run_coroutine_threadsafe(
+        get_context().epoch_graph_successs_perc_message_quere.put(
+            json.dumps({"correct": correct, "total": total, "epochNum": epochNumber})
+        ),
+        MAIN_LOOP,
+    )
+
+@app.get("/model/epoch-graph-perc-update-stream")
+async def perc_graph_stream(context: Context = Depends(get_context)):
+    return StreamingResponse(event_stream(context.epoch_graph_successs_perc_message_quere), media_type="text/event-stream")
+
+# SVG visualization
 
 def trigger_visulization_send_message(activeLayer, status):
     asyncio.run_coroutine_threadsafe(
@@ -94,12 +112,7 @@ def trigger_visulization_send_message(activeLayer, status):
         MAIN_LOOP,
     )
 
-async def visualization_event_stream():
-    while True:
-        message = await get_context().visualization_message_queue.get()  # Wait for an event
-        yield f"data: {message}\n\n"  # Send the event to frontend
-
 
 @app.get("/model/visualization-update-stream")
-async def graph_stream():
-    return StreamingResponse(visualization_event_stream(), media_type="text/event-stream")
+async def graph_stream(context: Context = Depends(get_context)):
+    return StreamingResponse(event_stream(context.visualization_message_queue), media_type="text/event-stream")

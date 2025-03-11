@@ -7,24 +7,19 @@ def backprop_layer_last_layer(AX_list, Y, m, n, WX_LIST):
 
     # step 1. calculate dC/dZ3 using shorthand we derived earlier
     dC_dZLAST = (1/m) * (A3 - Y)
-    # assert dC_dZLAST.shape == (n[len(n)-1], m)
 
     # step 2. calculate dC/dW3 = dC/dZ3 * dZ3/dW3 
     #   we matrix multiply dC/dZ3 with (dZ3/dW3)^T
     dZLAST_dWLAST = AX_list[len(AX_list)-2]
-    # assert dZLAST_dWLAST.shape == (n[len(n)-2], m)
 
     dC_dWLAST = dC_dZLAST @ dZLAST_dWLAST.T
-    # assert dC_dWLAST.shape == (n[len(n)-1], n[len(n)-2])
 
     # step 3. calculate dC/db3 = np.sum(dC/dZ3, axis=1, keepdims=True)
     dC_dbLAST = np.sum(dC_dZLAST, axis=1, keepdims=True)
-    # assert dC_dbLAST.shape == (n[len(n)-1], 1)
 
     # step 4. calculate propagator dC/dA2 = dC/dZ3 * dZ3/dA2
     dZLAST_dALAST_MIN_1 = WX_LIST[len(WX_LIST)-1]
     dC_dALAST_MIN_1 = dZLAST_dALAST_MIN_1.T @ dC_dZLAST
-    # assert dC_dALAST_MIN_1.shape == (n[2], m)
 
     return dC_dWLAST, dC_dbLAST, dC_dALAST_MIN_1
 
@@ -32,16 +27,13 @@ def backprop_layer_last_layer(AX_list, Y, m, n, WX_LIST):
 
 def calculate_dC_dWX(AX_min_1, dC_DZX, n, m, X):
     dZX_dWX = AX_min_1
-    # assert dZX_dWX.shape == (n[X-1], m)
 
     dC_dWX = dC_DZX @ dZX_dWX.T
-    # assert dC_dWX.shape == (n[X], n[X-1])
 
     return dC_dWX
 
 def calculate_dc_dbX(dC_dZX, n, X):
     dC_dbX = np.sum(dC_dZX, axis=1, keepdims=True)
-    # assert dC_dbX.shape == (n[X], 1)
 
     return dC_dbX
 
@@ -60,7 +52,6 @@ def backprop_layer_X(AX_LIST,propagator_dC_dAX, WX_LIST, n, m, X): # x = 2
     #     and if a = sigmoid(z), then sigmoid'(z) = a * (1 - a)
     dAX_dZX = AX_LIST[X] * (1 - AX_LIST[X])
     dC_dZX = propagator_dC_dAX * dAX_dZX
-    # assert dC_dZX.shape == (n[2], m)
 
     dC_dWX = calculate_dC_dWX(AX_LIST[X-1], dC_dZX, n, m, X)
 

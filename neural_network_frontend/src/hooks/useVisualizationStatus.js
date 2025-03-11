@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { apiInstance } from '../api/backend_api';
 import { visualization_status } from '../consts/default';
 
@@ -12,7 +12,6 @@ export const useVisulizationStatus = () =>
 
         eventSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log(data);
             setActiveLayerIndex(data.activeLayer);
             setStatus(data.status);
         };
